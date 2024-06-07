@@ -19,7 +19,7 @@ class MovableTile:
 
 
 # grid used for game
-#!!!! THE GRID IS IN Y, X !!!!
+#!!!! THE GRID IS IN Y, X !!!! [0][1] IS 1 TILE RIGHT OF THE TOP LEFT!!!
 game_grid = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -96,6 +96,7 @@ while running:
         # reset the block's last location to empty
         game_grid[block.past[0]][block.past[1]] = 0
 
+        # checks collision below to allow block to go down.
         game_grid[block.location[0]][block.location[1]] = block.color
         if block.location[0] != 19 and (game_grid[block.location[0] + 1][block.location[1]]) == 0:
             block.location[0] += 1
