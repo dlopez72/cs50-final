@@ -1,8 +1,8 @@
 import pygame
 
 #TODO: Fix bug where block duplicates when you hold a or d
-#TODO: Fix bug where block can merge with blocks sideways AKA add sideways collision
-#TODO: maybe use classes better? not 100 percent sure on that one.
+# this seems to be happening because if you hold left when on column 0
+# it thinks the past location was in column 1 when it wasn't
 
 # set up pygame stuff
 pygame.init()
@@ -16,7 +16,6 @@ class MovableTile:
     location = [0, 4]
     past = [0, 4]
     color = 1
-
 
 # grid used for game
 #!!!! THE GRID IS IN Y, X !!!! [0][1] IS 1 TILE RIGHT OF THE TOP LEFT!!!
@@ -46,6 +45,7 @@ game_grid = [
 clock = pygame.time.Clock()
 time = 0
 block = MovableTile()
+interval = 30
 
 # main game loop
 while running:
@@ -77,28 +77,40 @@ while running:
 
     keys = pygame.key.get_pressed()
 
-    # the 30 dictactes how often the game updates
-    if time % 30 == 0:
+    # makes the block fall faster if s is held
+    if keys[pygame.K_s]:
+        interval = 5
+    # mega slow down for debugging
+    elif keys[pygame.K_p]:
+        interval = 120
+    else:
+        interval = 30
+
+    # the 30 dictactes how often the blocks move down a tile
+    if time % interval == 0:
         # move block left if a is pressed, also makes the past location 1 right of the block's new location
         if keys[pygame.K_a]:
-            if block.location[1] != 0:
+            if block.location[1] != 0 and game_grid[block.location[0]][block.location[1] - 1] == 0:
                 block.location[1] -= 1
                 block.past[1] = block.location[1] + 1
         # same thing but for right side
         elif keys[pygame.K_d]:
-            if block.location[1] != 9:
+            if block.location[1] != 9 and game_grid[block.location[0]][block.location[1] + 1] == 0:
                 block.location[1] += 1
                 block.past[1] = block.location[1] - 1
+
+        # i have zero clue why this works but it does so im not gonna touch it
         else:
-            # i have zero clue why this works but it does so im not gonna touch it
             block.past[1] = block.location[1]
 
         # reset the block's last location to empty
         game_grid[block.past[0]][block.past[1]] = 0
+        print(f"BLOCK PAST X, Y: {block.past[1]},{block.past[0]}")
 
-        # checks collision below to allow block to go down.
+        # checks collision below to allow block to go down
         game_grid[block.location[0]][block.location[1]] = block.color
-        if block.location[0] != 19 and (game_grid[block.location[0] + 1][block.location[1]]) == 0:
+        if block.location[0] != 19 and game_grid[block.location[0] + 1][block.location[1]] == 0:
+            
             block.location[0] += 1
             if block.location[0] != 0:
                 block.past[0] = block.location[0] - 1
