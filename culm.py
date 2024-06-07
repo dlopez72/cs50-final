@@ -1,9 +1,5 @@
 import pygame
 
-#TODO: Fix bug where block duplicates when you hold a or d
-# this seems to be happening because if you hold left when on column 0
-# it thinks the past location was in column 1 when it wasn't
-
 # set up pygame stuff
 pygame.init()
 screen = pygame.display.set_mode((250, 500))
@@ -86,18 +82,22 @@ while running:
     else:
         interval = 30
 
-    # the 30 dictactes how often the blocks move down a tile
+    # the interval dictactes how often the blocks move down a tile
     if time % interval == 0:
-        # move block left if a is pressed, also makes the past location 1 right of the block's new location
+        # move block left if a is pressed, also makes the past location one tile right of the block's new location
         if keys[pygame.K_a]:
             if block.location[1] != 0 and game_grid[block.location[0]][block.location[1] - 1] == 0:
                 block.location[1] -= 1
                 block.past[1] = block.location[1] + 1
+            else:
+                block.past[1] = block.location[1]
         # same thing but for right side
         elif keys[pygame.K_d]:
             if block.location[1] != 9 and game_grid[block.location[0]][block.location[1] + 1] == 0:
                 block.location[1] += 1
                 block.past[1] = block.location[1] - 1
+            else:
+                block.past[1] = block.location[1]
 
         # i have zero clue why this works but it does so im not gonna touch it
         else:
