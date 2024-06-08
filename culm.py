@@ -1,5 +1,8 @@
 import pygame
 
+# TODO: seperate the interval for falling and moving side-to-side
+# TODO: implement full block shapes instead of individiual tiles
+
 # set up pygame stuff
 pygame.init()
 screen = pygame.display.set_mode((250, 500))
@@ -11,7 +14,7 @@ running = True
 class MovableTile:
     location = [0, 4]
     past = [0, 4]
-    color = 1
+    color = 3
 
 # grid used for game
 #!!!! THE GRID IS IN Y, X !!!! [0][1] IS 1 TILE RIGHT OF THE TOP LEFT!!!
@@ -71,6 +74,22 @@ while running:
             elif value == 7:
                 pygame.draw.rect(screen, "purple", (col_index * 25, row_index * 25, 25, 25))
 
+    full_count = 0
+
+    # checks and clears line at bottom.
+    for i in game_grid[19]:
+        if i != 0:
+            full_count += 1
+    if full_count == 10:
+        for i in range(10):
+            game_grid[19][i] = 0
+
+        # brings everything down 1 tile after clearing tile
+        for i in range(19, 0, -1):
+            game_grid[i] = game_grid[i-1]
+        game_grid[0] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        
+
     keys = pygame.key.get_pressed()
 
     # makes the block fall faster if s is held
@@ -99,13 +118,13 @@ while running:
             else:
                 block.past[1] = block.location[1]
 
-        # i have zero clue why this works but it does so im not gonna touch it
+        # if neither a or d aren't being touched it knows that it's last x location
+        # has to be the same
         else:
             block.past[1] = block.location[1]
 
         # reset the block's last location to empty
         game_grid[block.past[0]][block.past[1]] = 0
-        print(f"BLOCK PAST X, Y: {block.past[1]},{block.past[0]}")
 
         # checks collision below to allow block to go down
         game_grid[block.location[0]][block.location[1]] = block.color
