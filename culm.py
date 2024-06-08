@@ -1,4 +1,5 @@
 import pygame
+from random import randint
 
 # TODO: seperate the interval for falling and moving side-to-side
 # TODO: implement full block shapes instead of individiual tiles
@@ -137,6 +138,7 @@ while running:
             # keeps the current block location as filled while bringing the block back to the beginning
             block.location = [0, 4]
             block.past = [0, 4]
+            block.color = randint(1, 7)
 
     # update the display
     pygame.display.flip()
