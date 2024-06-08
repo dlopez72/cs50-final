@@ -1,8 +1,19 @@
 import pygame
 from random import randint
 
-# TODO: seperate the interval for falling and moving side-to-side
+# TODO: refactor everything to make it easier to implement tetrominoes
+# the past thing might need to be done on a tetromino level
 # TODO: implement full block shapes instead of individiual tiles
+
+# importantly for this code I made it that the shape of a tetromino directly
+# corresponds to its color so here's the guide:
+# 1 = YELLOW = O
+# 2 = CYAN = I
+# 3 = RED = Z
+# 4 = GREEN = S
+# 5 = ORANGE = L
+# 6 = BLUE = J
+# 7 = PURPLE = T
 
 # set up pygame stuff
 pygame.init()
@@ -12,10 +23,17 @@ screen = pygame.display.set_mode((250, 500))
 running = True
 
 # i dont really know classes that well I just wanted to have these variables in 1 "container" I guess.
-class MovableTile:
-    location = [0, 4]
-    past = [0, 4]
-    color = 3
+class Tile:
+    def __init__(self, location, past, color):
+        self.location = location
+        self.past = past
+        self.color = color
+    
+class Tetromino:
+    def __init__(self, shape, location):
+        self.shape = shape
+        self.location = location
+        block1 = Tile(self.location, self.location, self.shape)
 
 # grid used for game
 #!!!! THE GRID IS IN Y, X !!!! [0][1] IS 1 TILE RIGHT OF THE TOP LEFT!!!
@@ -44,7 +62,7 @@ game_grid = [
 
 clock = pygame.time.Clock()
 time = 0
-block = MovableTile()
+block =  Tile([0, 4], [0, 4], 2)
 interval = 30
 
 # main game loop
@@ -63,7 +81,7 @@ while running:
             if value == 1:
                 pygame.draw.rect(screen, "yellow", (col_index * 25, row_index * 25, 25, 25))
             elif value == 2:
-                pygame.draw.rect(screen, "blue", (col_index * 25, row_index * 25, 25, 25))
+                pygame.draw.rect(screen, "cyan", (col_index * 25, row_index * 25, 25, 25))
             elif value == 3:
                 pygame.draw.rect(screen, "red", (col_index * 25, row_index * 25, 25, 25))
             elif value == 4:
@@ -71,7 +89,7 @@ while running:
             elif value == 5:
                 pygame.draw.rect(screen, "orange", (col_index * 25, row_index * 25, 25, 25))
             elif value == 6:
-                pygame.draw.rect(screen, "pink", (col_index * 25, row_index * 25, 25, 25))
+                pygame.draw.rect(screen, "blue", (col_index * 25, row_index * 25, 25, 25))
             elif value == 7:
                 pygame.draw.rect(screen, "purple", (col_index * 25, row_index * 25, 25, 25))
 
