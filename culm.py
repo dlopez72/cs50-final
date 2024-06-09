@@ -7,13 +7,13 @@ from random import randint
 
 # importantly for this code I made it that the shape of a tetromino directly
 # corresponds to its color so here's the guide:
-# 1 = YELLOW = O
-# 2 = CYAN = I
-# 3 = RED = Z
-# 4 = GREEN = S
-# 5 = ORANGE = L
-# 6 = BLUE = J
-# 7 = PURPLE = T
+# 1 = YELLOW = O block
+# 2 = CYAN = I block
+# 3 = RED = Z block
+# 4 = GREEN = S block
+# 5 = ORANGE = L block
+# 6 = BLUE = J block
+# 7 = PURPLE = T block
 
 # set up pygame stuff
 pygame.init()
@@ -23,32 +23,69 @@ screen = pygame.display.set_mode((250, 500))
 running = True
 
 class Tile:
-    def __init__(self, location, past, color):
+    def __init__(self, location, past, color, attached):
         self.location = location
         self.past = past
         self.color = color
+        self.attached = attached
 
-    # move block left if a is pressed, also makes the past location one tile right of the block's new location
-    def move_left(self):
-        if self.location[1] != 0 and game_grid[self.location[0]][self.location[1] - 1] == 0:
-            self.location[1] -= 1
-            self.past[1] = self.location[1] + 1
+    def movement(self, keys):
+        # move block left if a is pressed, also makes the past location one tile right of the block's new location
+        if keys[pygame.K_a]:
+            if self.location[1] != 0 and game_grid[self.location[0]][self.location[1] - 1] == 0:
+                self.location[1] -= 1
+                self.past[1] = self.location[1] + 1
+            else:
+                self.past[1] = self.location[1]
+        # same thing but for right side
+        elif keys[pygame.K_d]:
+            if self.location[1] != 9 and game_grid[self.location[0]][self.location[1] + 1] == 0:
+                self.location[1] += 1
+                self.past[1] = self.location[1] - 1
+            else:
+                self.past[1] = self.location[1]
+        # if neither a or d are being touched it knows that it's last x location
+        # has to be the same
         else:
-            self.past[1] = self.location[1]
+            block.past[1] = block.location[1]
 
-    # same thing but for right side
-    def move_right(self):
-        if self.location[1] != 9 and game_grid[self.location[0]][self.location[1] + 1] == 0:
-            self.location[1] += 1
-            self.past[1] = self.location[1] - 1
+    def check_collision(self):
+        if self.location[0] != 19 and game_grid[self.location[0] + 1][self.location[1]] == 0:
+            self.location[0] += 1
+            if self.location[0] != 0:
+                self.past[0] = self.location[0] - 1
         else:
-            self.past[1] = self.location[1]
+            # keeps the current block location as filled while bringing the block back to the beginning
+            self.location = [0, 4]
+            self.past = [0, 4]
+            self.color = randint(1, 7)
+
     
 class Tetromino:
-    def __init__(self, shape, location):
+    def __init__(self, location, shape):
         self.shape = shape
         self.location = location
-        block1 = Tile(self.location, self.location, self.shape)
+        self.block1 = Tile(self.location, self.location, self.shape, [])
+        if self.shape == 1:
+            self.block2 = Tile([self.location[0], self.location[1]+1], [self.location[0], self.location[1]+1], self.shape, [])
+            self.block3 = Tile([self.location[0]+1, self.location[1]], [self.location[0]+1, self.location[1]], self.shape, [])
+            self.block4 = Tile([self.location[0]+1, self.location[1]+1], [self.location[0]+1, self.location[1]+1], self.shape, [])
+            self.block1.attached = [self.block2, self.block3, self.block4]
+            self.block2.attached = [self.block1, self.block3, self.block4]
+            self.block3.attached = [self.block1, self.block2, self.block4]
+            self.block4.attached = [self.block1, self.block2, self.block3]
+
+    def move_left(self):
+        self.block1.move_left()
+        self.block2.move_left()
+        self.block3.move_left()
+        self.block4.move_left()
+
+    def move_right(self):
+        self.block1.move_right()
+        self.block2.move_right()
+        self.block3.move_right()
+        self.block4.move_right()
 
 # grid used for game
 #!!!! THE GRID IS IN Y, X !!!! [0][1] IS 1 TILE RIGHT OF THE TOP LEFT!!!
@@ -77,7 +114,7 @@ game_grid = [
 
 clock = pygame.time.Clock()
 time = 0
-block =  Tile([0, 4], [0, 4], 2)
+block =  Tile([0, 4], [0, 4], 1, [])
 interval = 30
 
 # main game loop
@@ -137,30 +174,14 @@ while running:
 
     # the interval dictactes how often the blocks move down a tile
     if time % interval == 0:
-        if keys[pygame.K_a]:
-            block.move_left()
-        elif keys[pygame.K_d]:
-            block.move_right()
-        # if neither a or d aren't being touched it knows that it's last x location
-        # has to be the same
-        else:
-            block.past[1] = block.location[1]
+        block.movement(keys)
 
         # reset the block's last location to empty
         game_grid[block.past[0]][block.past[1]] = 0
 
         # checks collision below to allow block to go down
         game_grid[block.location[0]][block.location[1]] = block.color
-        if block.location[0] != 19 and game_grid[block.location[0] + 1][block.location[1]] == 0:
-            
-            block.location[0] += 1
-            if block.location[0] != 0:
-                block.past[0] = block.location[0] - 1
-        else:
-            # keeps the current block location as filled while bringing the block back to the beginning
-            block.location = [0, 4]
-            block.past = [0, 4]
-            block.color = randint(1, 7)
+        block.check_collision()
 
     # update the display
     pygame.display.flip()
