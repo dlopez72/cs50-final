@@ -22,12 +22,27 @@ screen = pygame.display.set_mode((250, 500))
 # run until user asks to quit
 running = True
 
-# i dont really know classes that well I just wanted to have these variables in 1 "container" I guess.
 class Tile:
     def __init__(self, location, past, color):
         self.location = location
         self.past = past
         self.color = color
+
+    # move block left if a is pressed, also makes the past location one tile right of the block's new location
+    def move_left(self):
+        if self.location[1] != 0 and game_grid[self.location[0]][self.location[1] - 1] == 0:
+            self.location[1] -= 1
+            self.past[1] = self.location[1] + 1
+        else:
+            self.past[1] = self.location[1]
+
+    # same thing but for right side
+    def move_right(self):
+        if self.location[1] != 9 and game_grid[self.location[0]][self.location[1] + 1] == 0:
+            self.location[1] += 1
+            self.past[1] = self.location[1] - 1
+        else:
+            self.past[1] = self.location[1]
     
 class Tetromino:
     def __init__(self, shape, location):
@@ -122,21 +137,10 @@ while running:
 
     # the interval dictactes how often the blocks move down a tile
     if time % interval == 0:
-        # move block left if a is pressed, also makes the past location one tile right of the block's new location
         if keys[pygame.K_a]:
-            if block.location[1] != 0 and game_grid[block.location[0]][block.location[1] - 1] == 0:
-                block.location[1] -= 1
-                block.past[1] = block.location[1] + 1
-            else:
-                block.past[1] = block.location[1]
-        # same thing but for right side
+            block.move_left()
         elif keys[pygame.K_d]:
-            if block.location[1] != 9 and game_grid[block.location[0]][block.location[1] + 1] == 0:
-                block.location[1] += 1
-                block.past[1] = block.location[1] - 1
-            else:
-                block.past[1] = block.location[1]
-
+            block.move_right()
         # if neither a or d aren't being touched it knows that it's last x location
         # has to be the same
         else:
