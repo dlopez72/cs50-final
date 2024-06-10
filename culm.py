@@ -46,7 +46,7 @@ class Tile:
         # if neither a or d are being touched it knows that it's last x location
         # has to be the same
         else:
-            block.past[1] = block.location[1]
+            self.past[1] = self.location[1]
 
     def gravity(self):
         if self.location[0] != 19 and game_grid[self.location[0] + 1][self.location[1]] == 0:
@@ -58,6 +58,13 @@ class Tile:
             self.location = [0, 4]
             self.past = [0, 4]
             self.color = randint(1, 7)
+
+    def update_grid(self):
+        # reset the block's last location to empty
+        game_grid[self.past[0]][self.past[1]] = 0
+
+        # set grid to block location
+        game_grid[self.location[0]][self.location[1]] = self.color
 
     
 class Tetromino:
@@ -74,11 +81,23 @@ class Tetromino:
             self.block3.attached = [self.block1, self.block2, self.block4]
             self.block4.attached = [self.block1, self.block2, self.block3]
 
-    def movement(self):
-        self.block1.movement()
-        self.block2.movement()
-        self.block3.movement()
-        self.block4.movement()
+    def movement(self, keys):
+        self.block1.movement(keys)
+        self.block2.movement(keys)
+        self.block3.movement(keys)
+        self.block4.movement(keys)
+
+    def gravity(self):
+        self.block1.gravity()
+        self.block2.gravity()
+        self.block3.gravity()
+        self.block4.gravity()
+
+    def update_grid(self):
+        self.block1.update_grid()
+        self.block2.update_grid()
+        self.block3.update_grid()
+        self.block4.update_grid()
 
 # grid used for game
 #!!!! THE GRID IS IN Y, X !!!! [0][1] IS 1 TILE RIGHT OF THE TOP LEFT!!!
@@ -107,7 +126,7 @@ game_grid = [
 
 clock = pygame.time.Clock()
 time = 0
-block =  Tile([0, 4], [0, 4], 1, [])
+tetro =  Tile([0, 4], [0, 4], 1, [])
 interval = 30
 
 # main game loop
@@ -167,15 +186,9 @@ while running:
 
     # the interval dictactes how often the blocks move down a tile
     if time % gravity_interval == 0:
-        block.movement(keys)
-
-        # reset the block's last location to empty
-        game_grid[block.past[0]][block.past[1]] = 0
-
-        # set grid to block location
-        game_grid[block.location[0]][block.location[1]] = block.color
-
-        block.gravity()
+        tetro.movement(keys)
+        tetro.update_grid()
+        tetro.gravity()
 
     # update the display
     pygame.display.flip()
