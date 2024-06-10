@@ -1,8 +1,7 @@
 import pygame
 from random import randint
 
-# TODO: refactor everything to make it easier to implement tetrominoes
-# the past thing might need to be done on a tetromino level
+# TODO: redo the entire past system it's messing things up & confusing
 # TODO: implement full block shapes instead of individiual tiles
 
 # importantly for this code I made it that the shape of a tetromino directly
@@ -49,7 +48,7 @@ class Tile:
         else:
             block.past[1] = block.location[1]
 
-    def check_collision(self):
+    def gravity(self):
         if self.location[0] != 19 and game_grid[self.location[0] + 1][self.location[1]] == 0:
             self.location[0] += 1
             if self.location[0] != 0:
@@ -75,17 +74,11 @@ class Tetromino:
             self.block3.attached = [self.block1, self.block2, self.block4]
             self.block4.attached = [self.block1, self.block2, self.block3]
 
-    def move_left(self):
-        self.block1.move_left()
-        self.block2.move_left()
-        self.block3.move_left()
-        self.block4.move_left()
-
-    def move_right(self):
-        self.block1.move_right()
-        self.block2.move_right()
-        self.block3.move_right()
-        self.block4.move_right()
+    def movement(self):
+        self.block1.movement()
+        self.block2.movement()
+        self.block3.movement()
+        self.block4.movement()
 
 # grid used for game
 #!!!! THE GRID IS IN Y, X !!!! [0][1] IS 1 TILE RIGHT OF THE TOP LEFT!!!
@@ -165,23 +158,24 @@ while running:
 
     # makes the block fall faster if s is held
     if keys[pygame.K_s]:
-        interval = 5
+        gravity_interval = 5
     # mega slow down for debugging
     elif keys[pygame.K_p]:
-        interval = 120
+        gravity_interval = 120
     else:
-        interval = 30
+        gravity_interval = 30
 
     # the interval dictactes how often the blocks move down a tile
-    if time % interval == 0:
+    if time % gravity_interval == 0:
         block.movement(keys)
 
         # reset the block's last location to empty
         game_grid[block.past[0]][block.past[1]] = 0
 
-        # checks collision below to allow block to go down
+        # set grid to block location
         game_grid[block.location[0]][block.location[1]] = block.color
-        block.check_collision()
+
+        block.gravity()
 
     # update the display
     pygame.display.flip()
