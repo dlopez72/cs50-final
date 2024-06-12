@@ -49,7 +49,7 @@ class Tile:
             self.past[1] = self.location[1]
 
     def gravity(self):
-        if self.location[0] != 19 and game_grid[self.location[0] + 1][self.location[1]] == 0:
+        if self.location[0] != 19 and (game_grid[self.location[0] + 1][self.location[1]] == 0 or self.attached[0].location[0] == self.location[0]+1 or self.attached[1].location[0] == self.location[0]+1 or self.attached[2].location[0] == self.location[0]+1):
             self.location[0] += 1
             if self.location[0] != 0:
                 self.past[0] = self.location[0] - 1
