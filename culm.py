@@ -1,8 +1,6 @@
 import pygame
 from random import choice
 
-# TODO: implement full block shapes instead of individiual tiles
-
 # the arrays on the right are the shapes of the blocks
 # eg the T is [
 # [0, 1, 0]
@@ -49,6 +47,19 @@ class Tetromino:
         if not self.valid_position():
             self.position[0] -= 1
             self.lockin()
+
+    def rotate(self, keys):
+        if keys[pygame.K_e]:
+            # found this neat line on stack overflow, it rotates a 2d list clockwise
+            # (in this case the block)
+            self.shape = list(zip(*self.shape[::-1]))
+            if not self.valid_position():
+                # same but counter clockwise
+                self.shape = list(zip(*self.shape))[::-1]
+        elif keys[pygame.K_q]:
+            self.shape = list(zip(*self.shape))[::-1]
+            if not self.valid_position():
+                self.shape = list(zip(*self.shape[::-1]))
 
     # checks if the position you're trying to go to is valid
     def valid_position(self):
@@ -148,8 +159,8 @@ while running:
         gravity_interval = 120
     else:
         gravity_interval = 30
-    movement_interval = 5
-    
+    movement_interval = 7
+
     tetro.draw()
 
     # the interval dictactes how often the blocks move down a tile or are allowed to move
@@ -157,6 +168,7 @@ while running:
         tetro.gravity()
     if time % movement_interval == 0:
         tetro.movement(keys)
+        tetro.rotate(keys)
 
     # update the display
     pygame.display.flip()
