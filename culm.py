@@ -1,7 +1,7 @@
 import pygame
 from random import randint
 
-# TODO: redo the entire past system it's messing things up & confusing
+# TODO: try to seperate visual grid from placed info to make life easier.
 # TODO: implement full block shapes instead of individiual tiles
 
 # importantly for this code I made it that the shape of a tetromino directly
