@@ -9,13 +9,12 @@ from random import choice
 # -game over screen
 # -title screen
 # -fix rotating on right side
-# -line that isn't bottom
 
 # the arrays on the right are the shapes of the blockss
 # eg the T is [
 # [0, 1, 0]
 # [1, 1, 1]
-# ] 
+# ]
 tetrominoes = {
     'O': {'color': "yellow", 'shape': [[1, 1], [1, 1]]},
     'I': {'color': "cyan", 'shape': [[1, 1, 1, 1]]},
@@ -69,8 +68,11 @@ class Tetromino:
             # (in this case the block)
             self.shape = list(zip(*self.shape[::-1]))
             if not self.valid_position():
-                # same but counter clockwise
-                self.shape = list(zip(*self.shape))[::-1]
+                self.position[1] -= 1
+                if not self.valid_position():
+                    # same but counter clockwise
+                    self.position[1] -= 1
+                    self.shape = list(zip(*self.shape))[::-1]
         elif keys[pygame.K_q]:
             self.shape = list(zip(*self.shape))[::-1]
             if not self.valid_position():
