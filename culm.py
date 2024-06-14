@@ -1,6 +1,14 @@
 import pygame
 from random import choice
 
+# TODO
+# -holding
+# -score
+# -bag randomizer
+# -speeding up
+# -game over screen
+# -title screen
+
 # the arrays on the right are the shapes of the blocksas
 # eg the T is [
 # [0, 1, 0]
@@ -18,7 +26,8 @@ tetrominoes = {
 
 # set up pygame stuff
 pygame.init()
-screen = pygame.display.set_mode((250, 500))
+screen = pygame.display.set_mode((250, 600))
+pygame.display.set_caption("ICS3U1 Tetris")
 
 # run until user asks to quit
 running = True
@@ -121,6 +130,10 @@ clock = pygame.time.Clock()
 time = 0
 tetro =  Tetromino()
 interval = 30
+score = 0
+
+# set up text for score
+font = pygame.font.Font('freesansbold.ttf', 20)
 
 # main game loop
 while running:
@@ -129,6 +142,9 @@ while running:
         if event.type == pygame.QUIT:
             running = False
     time += 1
+
+    text = font.render(f"Score: {score}", True, "white")
+    screen.blit(text, (80, 540))  
 
     # basically multiplies the index by 25 to draw a 25 by 25 square at the appropriate place
     # relative to the grid. i found enumerate on google to have access to both the indices and values
@@ -145,6 +161,7 @@ while running:
     if full_count == 10:
         for i in range(10):
             game_grid[19][i] = 0
+        score += 100
 
         # brings everything down 1 tile after clearing tile
         for i in range(19, 0, -1):
