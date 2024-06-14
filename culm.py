@@ -2,7 +2,7 @@ import pygame
 from random import choice
 
 # TODO
-# -holding
+# -prevent hold abusing
 # -better scoring
 # -bag randomizer
 # -speeding up
@@ -166,7 +166,7 @@ while running:
     screen.blit(heldtext, (160, 520))
     held_render_pos = [160, 540]
     
-    # pretty much just slightly tweaked code from Tetronimo.draw() to render the block you're holding
+    # slightly tweaked code from Tetronimo.draw() to render the block you're holding
     if held:
         for row_index, row in enumerate(tetrominoes[held]['shape']):
                 for col_index, value in enumerate(row):
@@ -179,22 +179,21 @@ while running:
         for col_index, value in enumerate(row):
             pygame.draw.rect(screen, value, (col_index * 25, row_index * 25, 25, 25))
 
-    full_count = 0
+    # checks every line and clears if full
+    for row_index, row in enumerate(game_grid):
+        full_count = 0
+        for value in row:
+            if value != 0:
+                full_count += 1
+        if full_count == 10:
+            for i in range(10):
+                game_grid[row_index][i] = 0
+            score += 100
 
-    # checks and clears line at bottom.
-    for i in game_grid[19]:
-        if i != 0:
-            full_count += 1
-    if full_count == 10:
-        for i in range(10):
-            game_grid[19][i] = 0
-        score += 100
-
-        # brings everything down 1 tile after clearing tile
-        for i in range(19, 0, -1):
-            game_grid[i] = game_grid[i-1]
-        game_grid[0] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        
+            # brings everything down 1 tile after clearing row
+            for i in range(row_index, 0, -1):
+                game_grid[i] = game_grid[i-1]
+            game_grid[0] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     keys = pygame.key.get_pressed()
 
