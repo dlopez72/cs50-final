@@ -3,13 +3,15 @@ from random import choice
 
 # TODO
 # -holding
-# -score
+# -better scoring
 # -bag randomizer
 # -speeding up
 # -game over screen
 # -title screen
+# -fix rotating on right side
+# -line that isn't bottom
 
-# the arrays on the right are the shapes of the blocksas
+# the arrays on the right are the shapes of the blockss
 # eg the T is [
 # [0, 1, 0]
 # [1, 1, 1]
@@ -33,8 +35,12 @@ pygame.display.set_caption("ICS3U1 Tetris")
 running = True
 
 class Tetromino:
-    def __init__(self):
-        self.shapecolor = choice(list(tetrominoes.keys()))
+    def __init__(self, shapecolor=None):
+        # generates a random shapecolor if one isn't provided
+        if not shapecolor:
+            self.shapecolor = choice(list(tetrominoes.keys()))
+        else:
+            self.shapecolor = shapecolor
         # uses the dict to assign a color and shape to the main key
         self.color = tetrominoes[self.shapecolor]['color']
         self.shape = tetrominoes[self.shapecolor]['shape']
@@ -131,6 +137,7 @@ time = 0
 tetro =  Tetromino()
 interval = 30
 score = 0
+held = None
 
 # set up text for score
 font = pygame.font.Font('freesansbold.ttf', 20)
@@ -141,10 +148,30 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LSHIFT:
+                if held:
+                    temp = tetro.shapecolor
+                    tetro.__init__(held)
+                    held = temp
+                else:
+                    held = tetro.shapecolor
+                    tetro.__init__()
     time += 1
 
-    text = font.render(f"Score: {score}", True, "white")
-    screen.blit(text, (80, 540))  
+    # updates and draws text
+    scoretext = font.render(f"Score: {score}", True, "white")
+    heldtext = font.render(f"Held:", True, "white")
+    screen.blit(scoretext, (40, 540))
+    screen.blit(heldtext, (160, 520))
+    held_render_pos = [160, 540]
+    
+    # pretty much just slightly tweaked code from Tetronimo.draw() to render the block you're holding
+    if held:
+        for row_index, row in enumerate(tetrominoes[held]['shape']):
+                for col_index, value in enumerate(row):
+                    if value != 0:
+                        pygame.draw.rect(screen, tetrominoes[held]['color'], (held_render_pos[0] + (col_index * 25), held_render_pos[1] + (row_index * 25), 25, 25))
 
     # basically multiplies the index by 25 to draw a 25 by 25 square at the appropriate place
     # relative to the grid. i found enumerate on google to have access to both the indices and values
