@@ -173,6 +173,15 @@ while running:
         tetro.movement(keys)
         tetro.rotate(keys)
 
+    # generates grid lines for visibility
+    for row_index, row in enumerate(game_grid):
+        for col_index, value in enumerate(row):
+            pygame.draw.line(screen, "gray", [col_index * 25, 0], [col_index * 25, 500])
+            pygame.draw.line(screen, "gray", [0, row_index * 25], [250, row_index * 25])
+    # two extra lies that dont get drawn in the for loop
+    pygame.draw.line(screen, "gray", [0, 499], [250, 499])
+    pygame.draw.line(screen, "gray", [249, 0], [249, 500])
+
     # update the display
     pygame.display.flip()
     clock.tick(60)
