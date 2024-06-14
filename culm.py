@@ -68,15 +68,19 @@ class Tetromino:
             # (in this case the block)
             self.shape = list(zip(*self.shape[::-1]))
             if not self.valid_position():
+                # this trys moving the block to the left (this fixes the block being unable to rotate on the right)
                 self.position[1] -= 1
                 if not self.valid_position():
                     # same but counter clockwise
-                    self.position[1] -= 1
+                    self.position[1] += 1
                     self.shape = list(zip(*self.shape))[::-1]
         elif keys[pygame.K_q]:
             self.shape = list(zip(*self.shape))[::-1]
             if not self.valid_position():
-                self.shape = list(zip(*self.shape[::-1]))
+                self.position[1] -= 1
+                if not self.valid_position():
+                    self.position[1] += 1
+                    self.shape = list(zip(*self.shape[::-1]))
 
     # checks if the position you're trying to go to is valid
     def valid_position(self):
