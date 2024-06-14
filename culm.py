@@ -2,7 +2,6 @@ import pygame
 from random import choice
 
 # TODO
-# -prevent hold abusing
 # -better scoring
 # -bag randomizer
 # -speeding up
@@ -60,8 +59,8 @@ class Tetromino:
             self.position[0] -= 1
             self.lockin()
 
-    def rotate(self, keys):
-        if keys[pygame.K_e]:
+    def rotate(self, direction):
+        if direction == "right":
             # found this neat line on stack overflow, it rotates a 2d list clockwise
             # (in this case the block)
             self.shape = list(zip(*self.shape[::-1]))
@@ -72,7 +71,7 @@ class Tetromino:
                     # same but counter clockwise
                     self.position[1] += 1
                     self.shape = list(zip(*self.shape))[::-1]
-        elif keys[pygame.K_q]:
+        elif direction == "left":
             self.shape = list(zip(*self.shape))[::-1]
             if not self.valid_position():
                 self.position[1] -= 1
@@ -115,7 +114,7 @@ class Tetromino:
 
     # resets every variable used for game
     def reset_game(self):
-        global game_grid, score, held
+        global game_grid, score, held, justHeld
         game_grid = [
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -140,6 +139,7 @@ class Tetromino:
             ]
         score = 0
         held = None
+        justHeld = False
 
 # grid used for game
 #!!!! THE GRID IS IN Y, X !!!! [0][1] IS 1 TILE RIGHT OF THE TOP LEFT!!!
@@ -208,6 +208,10 @@ while running:
             if event.key == pygame.K_RETURN and (state == "title" or state == "loss"):
                 tetro.reset_game()
                 state = "playing"
+            if event.key == pygame.K_q:
+                tetro.rotate("left")
+            elif event.key == pygame.K_e:
+                tetro.rotate("right")
     time += 1
 
     if state == "playing":
@@ -266,7 +270,6 @@ while running:
             tetro.gravity()
         if time % movement_interval == 0:
             tetro.movement(keys)
-            tetro.rotate(keys)
 
         # generates grid lines for visibility
         for row_index, row in enumerate(game_grid):
