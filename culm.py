@@ -102,6 +102,8 @@ class Tetromino:
             global state
             state = "loss"
         else:
+            global justHeld
+            justHeld = False
             self.__init__()
 
     # drawing of tetronimoes is done seperately from placed grid, because doing them together was a nightmare
@@ -170,6 +172,7 @@ tetro =  Tetromino()
 interval = 30
 score = 0
 held = None
+justHeld = False
 
 # set up text
 font = pygame.font.Font('freesansbold.ttf', 20)
@@ -192,13 +195,16 @@ while running:
         # these are for ones that aren't held down, just the inital press.
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LSHIFT and state == "playing":
-                if held:
-                    temp = tetro.shapecolor
-                    tetro.__init__(held)
-                    held = temp
-                else:
-                    held = tetro.shapecolor
-                    tetro.__init__()
+                # the purpose of justHeld is to prevent hold spamming. it gets set to False in Tetronimo.lockin()
+                if not justHeld:
+                    if held:
+                        temp = tetro.shapecolor
+                        tetro.__init__(held)
+                        held = temp
+                    else:
+                        held = tetro.shapecolor
+                        tetro.__init__()
+                    justHeld = True
             if event.key == pygame.K_RETURN and (state == "title" or state == "loss"):
                 tetro.reset_game()
                 state = "playing"
