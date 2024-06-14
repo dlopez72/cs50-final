@@ -6,8 +6,6 @@ from random import choice
 # -better scoring
 # -bag randomizer
 # -speeding up
-# -game over screen
-# -title screen
 
 # the arrays on the right are the shapes of the blockss
 # eg the T is [
@@ -102,8 +100,7 @@ class Tetromino:
         # restets game if you reach the top
         if game_grid[0][4] or game_grid[0][5] or game_grid[0][3] or game_grid[0][6]:
             global state
-            state = "title"
-            self.reset_game()
+            state = "loss"
         else:
             self.__init__()
 
@@ -114,6 +111,7 @@ class Tetromino:
                 if value != 0:
                     pygame.draw.rect(screen, self.color, ((self.position[1] + col_index) * 25, (self.position[0] + row_index) * 25, 25, 25))
 
+    # resets every variable used for game
     def reset_game(self):
         global game_grid, score, held
         game_grid = [
@@ -181,6 +179,8 @@ explain_text1 = font.render("Press Enter to start", True, "white")
 explain_text2 = font.render("Move block with ASD", True, "white")
 explain_text3 = font.render("QE to rotate", True, "white")
 explain_text4 = font.render("LSHIFT to hold", True, "white")
+gameover_text1 = title_font.render("Game", True, "white")
+gameover_text2 = title_font.render("Over!", True, "white")
 
 # main game loop
 while running:
@@ -188,6 +188,8 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        # some inputs r done here instead of with the "keys" variable i use later bc
+        # these are for ones that aren't held down, just the inital press.
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LSHIFT and state == "playing":
                 if held:
@@ -197,7 +199,8 @@ while running:
                 else:
                     held = tetro.shapecolor
                     tetro.__init__()
-            if event.key == pygame.K_RETURN and state == "title":
+            if event.key == pygame.K_RETURN and (state == "title" or state == "loss"):
+                tetro.reset_game()
                 state = "playing"
     time += 1
 
@@ -273,7 +276,12 @@ while running:
         screen.blit(explain_text2, (30, 325))
         screen.blit(explain_text3, (30, 350))
         screen.blit(explain_text4, (30, 375))
-
+    elif state == "loss":
+        scoretext = font.render(f"Score: {score}", True, "white")
+        screen.blit(gameover_text1, (15, 175))
+        screen.blit(gameover_text2, (80, 225))
+        screen.blit(scoretext, (80, 300))
+        screen.blit(explain_text1, (30, 325))
     # update the display
     pygame.display.flip()
     clock.tick(60)
