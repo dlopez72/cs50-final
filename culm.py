@@ -1,7 +1,7 @@
 import pygame
 from random import choice
 
-# the arrays on the right are the shapes of the blocks
+# the arrays on the right are the shapes of the blocksas
 # eg the T is [
 # [0, 1, 0]
 # [1, 1, 1]
@@ -78,8 +78,11 @@ class Tetromino:
             for col_index, value in enumerate(row):
                 if value != 0:
                     game_grid[self.position[0] + row_index][self.position[1] + col_index] = self.color
-        # i just realized you can call init again and OH MY GOD that makes life way easier.
-        self.__init__()
+        # makes you lose if you reach the top
+        if game_grid[0][4] or game_grid[0][5] or game_grid[0][3] or game_grid[0][6]:
+            pygame.quit()
+        else:
+            self.__init__()
 
     # drawing of tetronimoes is done seperately from placed grid, because doing them together was a nightmare
     def draw(self):
