@@ -340,8 +340,8 @@ while running:
 
         movement_interval = 7
 
-        tetro.draw()
         tetro.draw_ghost()
+        tetro.draw()
 
         if keys[pygame.K_a]:
             if movement_timer % movement_interval == 0:
