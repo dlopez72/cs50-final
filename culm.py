@@ -1,8 +1,5 @@
 import pygame
-from random import choice
-
-# TODO
-# -bag randomizer
+from random import choice, shuffle
 
 # the arrays on the right are the shapes of the blockss
 # eg the T is [
@@ -11,11 +8,11 @@ from random import choice
 # ]
 tetrominoes = {
     'O': {'color': "yellow", 'shape': [[1, 1], [1, 1]]},
-    'I': {'color': "cyan", 'shape': [[1, 1, 1, 1]]},
+    'I': {'color': "cyan", 'shape': [[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0]]},
     'Z': {'color': "red", 'shape': [[1, 1, 0], [0, 1, 1]]},
     'S': {'color': "green", 'shape': [[0, 1, 1], [1, 1, 0]]},
-    'L': {'color': "orange", 'shape': [[1, 0, 0], [1, 1, 1]]},
-    'J': {'color': "blue", 'shape': [[0, 0, 1], [1, 1, 1]]},
+    'J': {'color': "blue", 'shape': [[1, 0, 0], [1, 1, 1]]},
+    'L': {'color': "orange", 'shape': [[0, 0, 1], [1, 1, 1]]},
     'T': {'color': "purple", 'shape': [[0, 1, 0], [1, 1, 1]]}
 }
 
@@ -99,9 +96,10 @@ class Tetromino:
             global state
             state = "loss"
         else:
-            global justHeld
+            global justHeld, tetrorder_index
             justHeld = False
-            self.__init__()
+            tetrorder_index = bag_increment(tetrorder_index)
+            self.__init__(tetromino_order[tetrorder_index])
 
     # drawing of tetronimoes is done seperately from placed grid, because doing them together was a nightmare
     def draw(self):
@@ -166,9 +164,21 @@ game_grid = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
   ]
 
+# sets up psuedo-random "bag shuffle". prevents you from getting the same piece over and over
+tetromino_order = ['O', 'I', 'Z', 'S', 'J', 'L', 'T']
+shuffle(tetromino_order)
+tetrorder_index = 0
+
+def bag_increment(tetrorder_index):
+    if tetrorder_index != 6:
+        return tetrorder_index + 1
+    else:
+        shuffle(tetromino_order)
+        return 0
+
 clock = pygame.time.Clock()
 time = 0
-tetro =  Tetromino()
+tetro =  Tetromino(tetromino_order[tetrorder_index])
 interval = 30
 score = 0
 held = None
