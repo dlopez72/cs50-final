@@ -1,6 +1,9 @@
 import pygame
 from random import choice, shuffle
 
+# TODO
+# -make movement less akward
+
 # the arrays on the right are the shapes of the blockss
 # eg the T is [
 # [0, 1, 0]
@@ -38,12 +41,12 @@ class Tetromino:
         self.position = [0, round(10 / 2) - round(len(self.shape[0]) / 2)]
 
     # move block left if a is pressed and it's a valid position.
-    def movement(self, keys):
-        if keys[pygame.K_a]:
+    def movement(self, direction):
+        if direction == "left":
             self.position[1] -= 1
             if not self.valid_position():
                 self.position[1] += 1
-        elif keys[pygame.K_d]:
+        elif direction == "right":
             self.position[1] += 1
             if not self.valid_position():
                 self.position[1] -= 1
@@ -204,7 +207,6 @@ shuffle(tetromino_order)
 tetrorder_index = 0
 
 def bag_increment(tetrorder_index):
-    print(tetrorder_index)
     if tetrorder_index != 6:
         return tetrorder_index + 1
     else:
@@ -213,6 +215,7 @@ def bag_increment(tetrorder_index):
 
 clock = pygame.time.Clock()
 time = 0
+movement_timer = 0
 tetro =  Tetromino(tetromino_order[tetrorder_index])
 interval = 30
 score = 0
@@ -229,6 +232,7 @@ explain_text1 = font.render("Press Enter to start", True, "white")
 explain_text2 = font.render("Move block with ASD", True, "white")
 explain_text3 = font.render("QE to rotate", True, "white")
 explain_text4 = font.render("LSHIFT to hold", True, "white")
+explain_text5 = font.render("SPACE to drop", True, "white")
 gameover_text1 = title_font.render("Game", True, "white")
 gameover_text2 = title_font.render("Over!", True, "white")
 
@@ -259,13 +263,23 @@ while running:
             if event.key == pygame.K_RETURN and (state == "title" or state == "loss"):
                 tetro.reset_game()
                 state = "playing"
-            if event.key == pygame.K_q:
+            if event.key == pygame.K_q and state == "playing":
                 tetro.rotate("left")
-            elif event.key == pygame.K_e:
+            elif event.key == pygame.K_e and state == "playing":
                 tetro.rotate("right")
-            if event.key == pygame.K_SPACE:
+            if event.key == pygame.K_SPACE and state == "playing":
                 tetro.slam()
+            if event.key == pygame.K_a and state == "playing":
+                tetro.movement("left")
+                # this is neccessary to make movement not so finicky and sensitive
+                movement_timer = 0
+            elif event.key == pygame.K_d and state == "playing":
+                tetro.movement("right")
+                movement_timer = 0
+
     time += 1
+    movement_timer += 1
+
     if lines_cleared != 0:
         # every 10 lines your level increases
         level = (lines_cleared + 10) // 10
@@ -326,16 +340,22 @@ while running:
             gravity_interval = 120
         else:
             gravity_interval = base_gravity
+
         movement_interval = 7
 
         tetro.draw()
         tetro.draw_ghost()
 
+        if keys[pygame.K_a]:
+            if movement_timer % movement_interval == 0:
+                tetro.movement("left")
+        elif keys[pygame.K_d]:
+            if movement_timer % movement_interval == 0:
+                tetro.movement("right")
+
         # the interval dictactes how often the blocks move down a tile or are allowed to move
         if time % gravity_interval == 0:
             tetro.gravity()
-        if time % movement_interval == 0:
-            tetro.movement(keys)
 
         # generates grid lines for visibility
         for row_index, row in enumerate(game_grid):
@@ -353,6 +373,7 @@ while running:
         screen.blit(explain_text2, (30, 325))
         screen.blit(explain_text3, (30, 350))
         screen.blit(explain_text4, (30, 375))
+        screen.blit(explain_text5, (30, 400))
     elif state == "loss":
         pygame.mixer.music.pause()
         scoretext = font.render(f"Score: {score}", True, "white")
