@@ -54,6 +54,15 @@ class Tetromino:
             self.position[0] -= 1
             self.lockin()
 
+    def slam(self):
+        # tries to go 1 down over and over until it can't anymore which simulates a hard drop
+        for i in range(19): 
+            self.position[0] += 1
+            if not self.valid_position():
+                self.position[0] -= 1
+                self.lockin()
+                break
+
     def rotate(self, direction):
         if direction == "right":
             # found this neat line on stack overflow, it rotates a 2d list clockwise
@@ -75,15 +84,26 @@ class Tetromino:
                     self.shape = list(zip(*self.shape[::-1]))
 
     # checks if the position you're trying to go to is valid
-    def valid_position(self):
-        for row_index, row in enumerate(self.shape):
-            for col_index, value in enumerate(row):
-                if value != 0:
-                    new_x = self.position[1] + col_index
-                    new_y = self.position[0] + row_index
-                    if new_x < 0 or new_x > 9 or new_y > 19 or (new_y >= 0 and game_grid[new_y][new_x] != 0):
-                        return False
-        return True
+    # if nothing is inputted it uses the position of the tetromino otherwise it will use the provided coordinates
+    def valid_position(self, pos=None):
+        if not pos:
+            for row_index, row in enumerate(self.shape):
+                for col_index, value in enumerate(row):
+                    if value != 0:
+                        new_x = self.position[1] + col_index
+                        new_y = self.position[0] + row_index
+                        if new_x < 0 or new_x > 9 or new_y > 19 or (new_y >= 0 and game_grid[new_y][new_x] != 0):
+                            return False
+            return True
+        else:
+            for row_index, row in enumerate(self.shape):
+                for col_index, value in enumerate(row):
+                    if value != 0:
+                        new_x = pos[1] + col_index
+                        new_y = pos[0] + row_index
+                        if new_x < 0 or new_x > 9 or new_y > 19 or (new_y >= 0 and game_grid[new_y][new_x] != 0):
+                            return False
+            return True
     
     # locks in current position into the main game grid.
     def lockin(self):
@@ -108,6 +128,19 @@ class Tetromino:
             for col_index, value in enumerate(row):
                 if value != 0:
                     pygame.draw.rect(screen, self.color, ((self.position[1] + col_index) * 25, (self.position[0] + row_index) * 25, 25, 25))
+
+    # this function is mixed code from draw() and slam() to draw a ghost of where you will hard drop
+    def draw_ghost(self):
+        ghost_y = 0
+        for i in range(19): 
+            ghost_y += 1
+            if not self.valid_position([ghost_y, self.position[1]]):
+                ghost_y -= 1
+                break
+        for row_index, row in enumerate(self.shape):
+            for col_index, value in enumerate(row):
+                if value != 0:
+                    pygame.draw.rect(screen, "gray", ((self.position[1] + col_index) * 25, (ghost_y + row_index) * 25, 25, 25))
 
     # resets every variable used for game
     def reset_game(self):
@@ -171,6 +204,7 @@ shuffle(tetromino_order)
 tetrorder_index = 0
 
 def bag_increment(tetrorder_index):
+    print(tetrorder_index)
     if tetrorder_index != 6:
         return tetrorder_index + 1
     else:
@@ -229,6 +263,8 @@ while running:
                 tetro.rotate("left")
             elif event.key == pygame.K_e:
                 tetro.rotate("right")
+            if event.key == pygame.K_SPACE:
+                tetro.slam()
     time += 1
     if lines_cleared != 0:
         # every 10 lines your level increases
@@ -293,6 +329,7 @@ while running:
         movement_interval = 7
 
         tetro.draw()
+        tetro.draw_ghost()
 
         # the interval dictactes how often the blocks move down a tile or are allowed to move
         if time % gravity_interval == 0:
@@ -305,6 +342,7 @@ while running:
             for col_index, value in enumerate(row):
                 pygame.draw.line(screen, "gray", [col_index * 25, 0], [col_index * 25, 500])
                 pygame.draw.line(screen, "gray", [0, row_index * 25], [250, row_index * 25])
+
         # two extra lines that dont get drawn in the for loop
         pygame.draw.line(screen, "gray", [0, 499], [250, 499])
         pygame.draw.line(screen, "gray", [249, 0], [249, 500])
