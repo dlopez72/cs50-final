@@ -95,6 +95,7 @@ class Tetromino:
         if game_grid[0][4] or game_grid[0][5] or game_grid[0][3] or game_grid[0][6]:
             global state
             state = "loss"
+            pygame.mixer.music.rewind()
         else:
             global justHeld, tetrorder_index
             justHeld = False
@@ -197,6 +198,10 @@ explain_text4 = font.render("LSHIFT to hold", True, "white")
 gameover_text1 = title_font.render("Game", True, "white")
 gameover_text2 = title_font.render("Over!", True, "white")
 
+# set up music
+pygame.mixer.music.load('main_theme.mp3')
+pygame.mixer.music.play(-1)
+
 # main game loop
 while running:
     screen.fill("black")
@@ -230,10 +235,13 @@ while running:
         level = (lines_cleared + 10) // 10
 
     if state == "playing":
+        # play music
+        pygame.mixer.music.unpause()
+
         # updates and draws text
         scoretext = font.render(f"Score: {score}", True, "white")
         heldtext = font.render(f"Held:", True, "white")
-        screen.blit(scoretext, (40, 540))
+        screen.blit(scoretext, (15, 540))
         screen.blit(heldtext, (160, 520))
         held_render_pos = [160, 540]
         
@@ -301,12 +309,14 @@ while running:
         pygame.draw.line(screen, "gray", [0, 499], [250, 499])
         pygame.draw.line(screen, "gray", [249, 0], [249, 500])
     elif state == "title":
+        pygame.mixer.music.pause()
         screen.blit(title_text, (15, 200))
         screen.blit(explain_text1, (30, 300))
         screen.blit(explain_text2, (30, 325))
         screen.blit(explain_text3, (30, 350))
         screen.blit(explain_text4, (30, 375))
     elif state == "loss":
+        pygame.mixer.music.pause()
         scoretext = font.render(f"Score: {score}", True, "white")
         screen.blit(gameover_text1, (15, 175))
         screen.blit(gameover_text2, (80, 225))
