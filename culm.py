@@ -1,9 +1,6 @@
 import pygame
 from random import choice, shuffle
 
-# TODO
-# -make movement less akward
-
 # the arrays on the right are the shapes of the blockss
 # eg the T is [
 # [0, 1, 0]
