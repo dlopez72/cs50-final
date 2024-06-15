@@ -2,9 +2,7 @@ import pygame
 from random import choice
 
 # TODO
-# -better scoring
 # -bag randomizer
-# -speeding up
 
 # the arrays on the right are the shapes of the blockss
 # eg the T is [
@@ -114,7 +112,7 @@ class Tetromino:
 
     # resets every variable used for game
     def reset_game(self):
-        global game_grid, score, held, justHeld
+        global game_grid, score, held, justHeld, lines_cleared, level
         game_grid = [
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -140,6 +138,8 @@ class Tetromino:
         score = 0
         held = None
         justHeld = False
+        lines_cleared = 0
+        level = 1
 
 # grid used for game
 #!!!! THE GRID IS IN Y, X !!!! [0][1] IS 1 TILE RIGHT OF THE TOP LEFT!!!
@@ -173,6 +173,8 @@ interval = 30
 score = 0
 held = None
 justHeld = False
+lines_cleared = 0
+level = 1
 
 # set up text
 font = pygame.font.Font('freesansbold.ttf', 20)
@@ -213,6 +215,9 @@ while running:
             elif event.key == pygame.K_e:
                 tetro.rotate("right")
     time += 1
+    if lines_cleared != 0:
+        # every 10 lines your level increases
+        level = (lines_cleared + 10) // 10
 
     if state == "playing":
         # updates and draws text
@@ -244,7 +249,9 @@ while running:
             if full_count == 10:
                 for i in range(10):
                     game_grid[row_index][i] = 0
-                score += 100
+                # level is dictated by how many lines you've cleared which increases score and makes the game go faster
+                score += 100 * level
+                lines_cleared += 1
 
                 # brings everything down 1 tile after clearing row
                 for i in range(row_index, 0, -1):
@@ -253,6 +260,10 @@ while running:
 
         keys = pygame.key.get_pressed()
 
+        # gravity falls faster based on level
+        if level <= 10:
+            base_gravity = 35 - (3*level)
+
         # makes the block fall faster if s is held
         if keys[pygame.K_s]:
             gravity_interval = 5
@@ -260,7 +271,7 @@ while running:
         elif keys[pygame.K_p]:
             gravity_interval = 120
         else:
-            gravity_interval = 30
+            gravity_interval = base_gravity
         movement_interval = 7
 
         tetro.draw()
