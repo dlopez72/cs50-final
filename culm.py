@@ -93,7 +93,7 @@ class Tetromino:
                     if value != 0:
                         new_x = self.position[1] + col_index
                         new_y = self.position[0] + row_index
-                        if new_x < 0 or new_x > 9 or new_y > 19 or (new_y >= 0 and game_grid[new_y][new_x] != 0):
+                        if new_x < 0 or new_x > 9 or new_y > 19 or (new_y >= 0 and self.player.grid[new_y][new_x] != 0):
                             return False
             return True
         else:
@@ -102,7 +102,7 @@ class Tetromino:
                     if value != 0:
                         new_x = pos[1] + col_index
                         new_y = pos[0] + row_index
-                        if new_x < 0 or new_x > 9 or new_y > 19 or (new_y >= 0 and game_grid[new_y][new_x] != 0):
+                        if new_x < 0 or new_x > 9 or new_y > 19 or (new_y >= 0 and self.player.grid[new_y][new_x] != 0):
                             return False
             return True
     
@@ -111,9 +111,9 @@ class Tetromino:
         for row_index, row in enumerate(self.shape):
             for col_index, value in enumerate(row):
                 if value != 0:
-                    game_grid[self.position[0] + row_index][self.position[1] + col_index] = self.color
+                    self.player.grid[self.position[0] + row_index][self.position[1] + col_index] = self.color
         # restets game if you reach the top
-        if game_grid[0][4] or game_grid[0][5] or game_grid[0][3] or game_grid[0][6]:
+        if self.player.grid[0][4] or self.player.grid[0][5] or self.player.grid[0][3] or self.player.grid[0][6]:
             global state
             state = "loss"
             pygame.mixer.music.rewind()
@@ -145,8 +145,7 @@ class Tetromino:
 
     # resets every variable used for game
     def reset_game(self):
-        global game_grid
-        game_grid = [
+        self.player.grid = [
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -199,9 +198,6 @@ game_grid = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
   ]
 
-# 2nd player's grid
-game_grid2 = game_grid
-
 # sets up psuedo-random "bag shuffle". prevents you from getting the same piece over and over
 tetromino_order = ['O', 'I', 'Z', 'S', 'J', 'L', 'T']
 shuffle(tetromino_order)
@@ -221,14 +217,18 @@ interval = 30
 
 # player class includes tetronimo object and stats for your own game.
 class Player:
-    def __init__(self, tetromino_order, tetrorder_index):
+    def __init__(self, tetromino_order, tetrorder_index, grid):
         self.tetro =  Tetromino(self, tetromino_order[tetrorder_index])
         self.score = 0
         self.held = None
         self.justHeld = False
         self.lines_cleared = 0
         self.level = 1
-p1 = Player(tetromino_order, tetrorder_index)
+        self.grid = grid
+
+p1 = Player(tetromino_order, tetrorder_index, game_grid)
+p2 = Player(tetromino_order, tetrorder_index, game_grid)
+players = [p1, p2]
 
 # set up text
 font = pygame.font.Font('freesansbold.ttf', 20)
@@ -311,27 +311,27 @@ while running:
 
         # basically multiplies the index by 25 to draw a 25 by 25 square at the appropriate place
         # relative to the grid. i found enumerate on google to have access to both the indices and values
-        for row_index, row in enumerate(game_grid):
+        for row_index, row in enumerate(p1.grid):
             for col_index, value in enumerate(row):
                 pygame.draw.rect(screen, value, (col_index * 25, row_index * 25, 25, 25))
 
         # checks every line and clears if full
-        for row_index, row in enumerate(game_grid):
+        for row_index, row in enumerate(p1.grid):
             full_count = 0
             for value in row:
                 if value != 0:
                     full_count += 1
             if full_count == 10:
                 for i in range(10):
-                    game_grid[row_index][i] = 0
+                    p1.grid[row_index][i] = 0
                 # level is dictated by how many lines you've cleared which increases score and makes the game go faster
                 p1.score += 100 * p1.level
                 p1.lines_cleared += 1
 
                 # brings everything down 1 tile after clearing row
                 for i in range(row_index, 0, -1):
-                    game_grid[i] = game_grid[i-1]
-                game_grid[0] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                    p1.grid[i] = p1.grid[i-1]
+                p1.grid[0] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
         keys = pygame.key.get_pressed()
 
@@ -367,7 +367,7 @@ while running:
             p1.tetro.gravity()
 
         # generates grid lines for visibility
-        for row_index, row in enumerate(game_grid):
+        for row_index, row in enumerate(p1.grid):
             for col_index, value in enumerate(row):
                 pygame.draw.line(screen, "gray", [col_index * 25, 0], [col_index * 25, 500])
                 pygame.draw.line(screen, "gray", [0, row_index * 25], [250, row_index * 25])
