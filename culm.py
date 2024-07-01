@@ -18,7 +18,7 @@ tetrominoes = {
 
 # set up pygame stuff
 pygame.init()
-screen = pygame.display.set_mode((250, 600))
+screen = pygame.display.set_mode((500, 600))
 pygame.display.set_caption("ICS3U1 Tetris")
 state = "title"
 
@@ -26,7 +26,7 @@ state = "title"
 running = True
 
 class Tetromino:
-    def __init__(self, shapecolor=None):
+    def __init__(self, player, shapecolor=None):
         # generates a random shapecolor if one isn't provided
         if not shapecolor:
             self.shapecolor = choice(list(tetrominoes.keys()))
@@ -36,6 +36,7 @@ class Tetromino:
         self.color = tetrominoes[self.shapecolor]['color']
         self.shape = tetrominoes[self.shapecolor]['shape']
         self.position = [0, round(10 / 2) - round(len(self.shape[0]) / 2)]
+        self.player = player
 
     # move block left if a is pressed and it's a valid position.
     def movement(self, direction):
@@ -117,10 +118,10 @@ class Tetromino:
             state = "loss"
             pygame.mixer.music.rewind()
         else:
-            global justHeld, tetrorder_index
-            justHeld = False
+            global tetrorder_index
+            self.player.justHeld = False
             tetrorder_index = bag_increment(tetrorder_index)
-            self.__init__(tetromino_order[tetrorder_index])
+            self.__init__(self.player, tetromino_order[tetrorder_index])
 
     # drawing of tetronimoes is done seperately from placed grid, because doing them together was a nightmare
     def draw(self):
@@ -144,7 +145,7 @@ class Tetromino:
 
     # resets every variable used for game
     def reset_game(self):
-        global game_grid, score, held, justHeld, lines_cleared, level
+        global game_grid
         game_grid = [
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -167,11 +168,11 @@ class Tetromino:
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             ]
-        score = 0
-        held = None
-        justHeld = False
-        lines_cleared = 0
-        level = 1
+        self.player.score = 0
+        self.player.held = None
+        self.player.justHeld = False
+        self.player.lines_cleared = 0
+        self.player.level = 1
 
 # grid used for game
 #!!!! THE GRID IS IN Y, X !!!! [0][1] IS 1 TILE RIGHT OF THE TOP LEFT!!!
@@ -198,6 +199,9 @@ game_grid = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
   ]
 
+# 2nd player's grid
+game_grid2 = game_grid
+
 # sets up psuedo-random "bag shuffle". prevents you from getting the same piece over and over
 tetromino_order = ['O', 'I', 'Z', 'S', 'J', 'L', 'T']
 shuffle(tetromino_order)
@@ -213,13 +217,18 @@ def bag_increment(tetrorder_index):
 clock = pygame.time.Clock()
 time = 0
 movement_timer = 0
-tetro =  Tetromino(tetromino_order[tetrorder_index])
 interval = 30
-score = 0
-held = None
-justHeld = False
-lines_cleared = 0
-level = 1
+
+# player class includes tetronimo object and stats for your own game.
+class Player:
+    def __init__(self, tetromino_order, tetrorder_index):
+        self.tetro =  Tetromino(self, tetromino_order[tetrorder_index])
+        self.score = 0
+        self.held = None
+        self.justHeld = False
+        self.lines_cleared = 0
+        self.level = 1
+p1 = Player(tetromino_order, tetrorder_index)
 
 # set up text
 font = pygame.font.Font('freesansbold.ttf', 20)
@@ -248,56 +257,57 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LSHIFT and state == "playing":
                 # the purpose of justHeld is to prevent hold spamming. it gets set to False in Tetronimo.lockin()
-                if not justHeld:
-                    if held:
-                        temp = tetro.shapecolor
-                        tetro.__init__(held)
-                        held = temp
+                if not p1.justHeld:
+                    if p1.held:
+                        temp = p1.tetro.shapecolor
+                        p1.tetro.__init__(p1, p1.held)
+                        p1.held = temp
                     else:
-                        held = tetro.shapecolor
-                        tetro.__init__()
-                    justHeld = True
+                        p1.held = p1.tetro.shapecolor
+                        tetrorder_index = bag_increment(tetrorder_index)
+                        p1.tetro.__init__(p1, tetromino_order[tetrorder_index])
+                    p1.justHeld = True
             if event.key == pygame.K_RETURN and (state == "title" or state == "loss"):
-                tetro.reset_game()
+                p1.tetro.reset_game()
                 state = "playing"
             if event.key == pygame.K_q and state == "playing":
-                tetro.rotate("left")
+                p1.tetro.rotate("left")
             elif event.key == pygame.K_e and state == "playing":
-                tetro.rotate("right")
+                p1.tetro.rotate("right")
             if event.key == pygame.K_SPACE and state == "playing":
-                tetro.slam()
+                p1.tetro.slam()
             if event.key == pygame.K_a and state == "playing":
-                tetro.movement("left")
+                p1.tetro.movement("left")
                 # this is neccessary to make movement not so finicky and sensitive
                 movement_timer = 0
             elif event.key == pygame.K_d and state == "playing":
-                tetro.movement("right")
+                p1.tetro.movement("right")
                 movement_timer = 0
 
     time += 1
     movement_timer += 1
 
-    if lines_cleared != 0:
+    if p1.lines_cleared != 0:
         # every 10 lines your level increases
-        level = (lines_cleared + 10) // 10
+        p1.level = (p1.lines_cleared + 10) // 10
 
     if state == "playing":
         # play music
         pygame.mixer.music.unpause()
 
         # updates and draws text
-        scoretext = font.render(f"Score: {score}", True, "white")
+        scoretext = font.render(f"Score: {p1.score}", True, "white")
         heldtext = font.render(f"Held:", True, "white")
         screen.blit(scoretext, (15, 540))
         screen.blit(heldtext, (160, 520))
         held_render_pos = [160, 540]
         
         # slightly tweaked code from Tetronimo.draw() to render the block you're holding
-        if held:
-            for row_index, row in enumerate(tetrominoes[held]['shape']):
+        if p1.held:
+            for row_index, row in enumerate(tetrominoes[p1.held]['shape']):
                     for col_index, value in enumerate(row):
                         if value != 0:
-                            pygame.draw.rect(screen, tetrominoes[held]['color'], (held_render_pos[0] + (col_index * 25), held_render_pos[1] + (row_index * 25), 25, 25))
+                            pygame.draw.rect(screen, tetrominoes[p1.held]['color'], (held_render_pos[0] + (col_index * 25), held_render_pos[1] + (row_index * 25), 25, 25))
 
         # basically multiplies the index by 25 to draw a 25 by 25 square at the appropriate place
         # relative to the grid. i found enumerate on google to have access to both the indices and values
@@ -315,8 +325,8 @@ while running:
                 for i in range(10):
                     game_grid[row_index][i] = 0
                 # level is dictated by how many lines you've cleared which increases score and makes the game go faster
-                score += 100 * level
-                lines_cleared += 1
+                p1.score += 100 * p1.level
+                p1.lines_cleared += 1
 
                 # brings everything down 1 tile after clearing row
                 for i in range(row_index, 0, -1):
@@ -325,9 +335,11 @@ while running:
 
         keys = pygame.key.get_pressed()
 
-        # gravity falls faster based on level
-        if level <= 10:
-            base_gravity = 35 - (3*level)
+        # gravity falls faster based on level, caps at level 10
+        if p1.level <= 10:
+            base_gravity = 35 - (3*p1.level)
+        else:
+            base_gravity = 5
 
         # makes the block fall faster if s is held
         if keys[pygame.K_s]:
@@ -340,19 +352,19 @@ while running:
 
         movement_interval = 7
 
-        tetro.draw_ghost()
-        tetro.draw()
+        p1.tetro.draw_ghost()
+        p1.tetro.draw()
 
         if keys[pygame.K_a]:
             if movement_timer % movement_interval == 0:
-                tetro.movement("left")
+                p1.tetro.movement("left")
         elif keys[pygame.K_d]:
             if movement_timer % movement_interval == 0:
-                tetro.movement("right")
+                p1.tetro.movement("right")
 
         # the interval dictactes how often the blocks move down a tile or are allowed to move
         if time % gravity_interval == 0:
-            tetro.gravity()
+            p1.tetro.gravity()
 
         # generates grid lines for visibility
         for row_index, row in enumerate(game_grid):
@@ -373,7 +385,7 @@ while running:
         screen.blit(explain_text5, (30, 400))
     elif state == "loss":
         pygame.mixer.music.pause()
-        scoretext = font.render(f"Score: {score}", True, "white")
+        scoretext = font.render(f"Score: {p1.score}", True, "white")
         screen.blit(gameover_text1, (15, 175))
         screen.blit(gameover_text2, (80, 225))
         screen.blit(scoretext, (80, 300))
