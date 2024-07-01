@@ -18,7 +18,7 @@ tetrominoes = {
 
 # set up pygame stuff
 pygame.init()
-screen = pygame.display.set_mode((550, 600))
+screen = pygame.display.set_mode((650, 600))
 pygame.display.set_caption("ICS3U1 Tetris")
 state = "title"
 
@@ -114,8 +114,9 @@ class Tetromino:
                     self.player.grid[self.position[0] + row_index][self.position[1] + col_index] = self.color
         # restets game if you reach the top
         if self.player.grid[0][4] or self.player.grid[0][5] or self.player.grid[0][3] or self.player.grid[0][6]:
-            global state
+            global state, loser
             state = "loss"
+            loser = self.player
             pygame.mixer.music.rewind()
         else:
             global tetrorder_index
@@ -172,6 +173,7 @@ class Tetromino:
         self.player.justHeld = False
         self.player.lines_cleared = 0
         self.player.level = 1
+        self.__init__(self.player, tetromino_order[tetrorder_index])
 
 # grid used for game
 #!!!! THE GRID IS IN Y, X !!!! [0][1] IS 1 TILE RIGHT OF THE TOP LEFT!!!
@@ -228,20 +230,26 @@ class Player:
         self.offset = offset
 
 p1 = Player(tetromino_order, tetrorder_index, game_grid, 0)
-p2 = Player(tetromino_order, tetrorder_index, game_grid, 300)
+p2 = Player(tetromino_order, tetrorder_index, game_grid, 400)
 players = [p1, p2]
 
 # set up text
 font = pygame.font.Font('freesansbold.ttf', 20)
 title_font = pygame.font.Font('freesansbold.ttf', 58)
 title_text = title_font.render("TETRIS", True, "white")
+player_text1 = font.render("Player 1:", True, "white")
+player_text2 = font.render("Player 2:", True, "white")
 explain_text1 = font.render("Press Enter to start", True, "white")
 explain_text2 = font.render("Move block with ASD", True, "white")
 explain_text3 = font.render("QE to rotate", True, "white")
 explain_text4 = font.render("LSHIFT to hold", True, "white")
 explain_text5 = font.render("SPACE to drop", True, "white")
-gameover_text1 = title_font.render("Game", True, "white")
-gameover_text2 = title_font.render("Over!", True, "white")
+explain_text6 = font.render("Move block with arrow keys", True, "white")
+explain_text7 = font.render("Up arrow & NumPad0 to rotate", True, "white")
+explain_text8 = font.render("RSHIFT to hold", True, "white")
+explain_text9 = font.render("RCTRL to drop", True, "white")
+gameover_text1 = title_font.render("Winner: ", True, "white")
+heldtext = font.render(f"Held:", True, "white")
 
 # set up music
 pygame.mixer.music.load('main_theme.mp3')
@@ -258,6 +266,7 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN and (state == "title" or state == "loss"):
                 p1.tetro.reset_game()
+                p2.tetro.reset_game()
                 state = "playing"
             if state == "playing":
                 if event.key == pygame.K_LSHIFT:
@@ -312,10 +321,6 @@ while running:
     time += 1
     movement_timer += 1
 
-    if p1.lines_cleared != 0:
-        # every 10 lines your level increases
-        p1.level = (p1.lines_cleared + 10) // 10
-
     if state == "playing":
         # play music
         pygame.mixer.music.unpause()
@@ -326,10 +331,13 @@ while running:
         for player_num, player in enumerate(players):
             # updates and draws text
             scoretext = font.render(f"Score: {player.score}", True, "white")
-            heldtext = font.render(f"Held:", True, "white")
             screen.blit(scoretext, (15 + player.offset, 540))
             screen.blit(heldtext, (160 + player.offset, 520))
             held_render_pos = [160 + player.offset, 540]
+
+            if player.lines_cleared != 0:
+                # every 10 lines your level increases
+                player.level = (player.lines_cleared + 10) // 10
 
             # slightly tweaked code from Tetronimo.draw() to render the block you're holding
             if player.held:
@@ -368,7 +376,7 @@ while running:
             else:
                 base_gravity = 5
 
-            # makes the block fall faster if s is held
+            # makes the block fall faster if s or down arrow is held
             if player_num == 0:
                 if keys[pygame.K_s]:
                     gravity_interval = 5
@@ -419,25 +427,37 @@ while running:
         # four extra lines that dont get drawn in the for loop
         pygame.draw.line(screen, "gray", [0, 499], [250, 499])
         pygame.draw.line(screen, "gray", [249, 0], [249, 500])
-        pygame.draw.line(screen, "gray", [300, 499], [550, 499])
-        pygame.draw.line(screen, "gray", [549, 0], [549, 500])
+        pygame.draw.line(screen, "gray", [400, 499], [650, 499])
+        pygame.draw.line(screen, "gray", [649, 0], [649, 500])
 
 
     elif state == "title":
         pygame.mixer.music.pause()
-        screen.blit(title_text, (15, 200))
-        screen.blit(explain_text1, (30, 300))
-        screen.blit(explain_text2, (30, 325))
-        screen.blit(explain_text3, (30, 350))
-        screen.blit(explain_text4, (30, 375))
-        screen.blit(explain_text5, (30, 400))
+        screen.blit(title_text, (165, 200))
+        screen.blit(explain_text1, (180, 300))
+        screen.blit(player_text1, (30, 355))
+        screen.blit(explain_text2, (30, 380))
+        screen.blit(explain_text3, (30, 405))
+        screen.blit(explain_text4, (30, 430))
+        screen.blit(explain_text5, (30, 455))
+        screen.blit(player_text2, (250, 355))
+        screen.blit(explain_text6, (250, 380))
+        screen.blit(explain_text7, (250, 405))
+        screen.blit(explain_text8, (250, 430))
+        screen.blit(explain_text9, (250, 455))
+
     elif state == "loss":
         pygame.mixer.music.pause()
-        scoretext = font.render(f"Score: {p1.score}", True, "white")
-        screen.blit(gameover_text1, (15, 175))
-        screen.blit(gameover_text2, (80, 225))
-        screen.blit(scoretext, (80, 300))
-        screen.blit(explain_text1, (30, 325))
+        screen.blit(gameover_text1, (115, 175))
+        if loser == p1:
+            gameover_text2 = title_font.render("Player 2!", True, "white")
+            scoretext = font.render(f"Score: {p2.score}", True, "white")
+        else:
+            gameover_text2 = title_font.render("Player 1!", True, "white")
+            scoretext = font.render(f"Score: {p1.score}", True, "white")
+        screen.blit(gameover_text2, (180, 235))
+        screen.blit(scoretext, (230, 300))
+        screen.blit(explain_text1, (180, 325))
     # update the display
     pygame.display.flip()
     clock.tick(60)
