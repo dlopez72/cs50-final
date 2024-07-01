@@ -272,18 +272,41 @@ while running:
                             tetrorder_index = bag_increment(tetrorder_index)
                             p1.tetro.__init__(p1, tetromino_order[tetrorder_index])
                         p1.justHeld = True
+                if event.key == pygame.K_RSHIFT:
+                    if not p2.justHeld:
+                        if p2.held:
+                            temp = p2.tetro.shapecolor
+                            p2.tetro.__init__(p2, p2.held)
+                            p2.held = temp
+                        else:
+                            p2.held = p2.tetro.shapecolor
+                            tetrorder_index = bag_increment(tetrorder_index)
+                            p2.tetro.__init__(p2, tetromino_order[tetrorder_index])
+                        p2.justHeld = True
                 if event.key == pygame.K_q:
                     p1.tetro.rotate("left")
                 elif event.key == pygame.K_e:
                     p1.tetro.rotate("right")
+                if event.key == pygame.K_UP:
+                    p2.tetro.rotate("left")
+                elif event.key == pygame.K_KP_0:
+                    p2.tetro.rotate("right") 
                 if event.key == pygame.K_SPACE:
                     p1.tetro.slam()
+                if event.key == pygame.K_RCTRL:
+                    p2.tetro.slam()
                 if event.key == pygame.K_a:
                     p1.tetro.movement("left")
                     # this is neccessary to make movement not so finicky and sensitive
                     movement_timer = 0
                 elif event.key == pygame.K_d:
                     p1.tetro.movement("right")
+                    movement_timer = 0
+                if event.key == pygame.K_LEFT:
+                    p2.tetro.movement("left")
+                    movement_timer = 0
+                elif event.key == pygame.K_RIGHT:
+                    p2.tetro.movement("right")
                     movement_timer = 0
 
     time += 1
@@ -313,7 +336,7 @@ while running:
                 for row_index, row in enumerate(tetrominoes[player.held]['shape']):
                         for col_index, value in enumerate(row):
                             if value != 0:
-                                pygame.draw.rect(screen, tetrominoes[player.held]['color'], ((held_render_pos[0] + (col_index * 25)) + player.offset, held_render_pos[1] + (row_index * 25), 25, 25))
+                                pygame.draw.rect(screen, tetrominoes[player.held]['color'], (held_render_pos[0] + (col_index * 25), held_render_pos[1] + (row_index * 25), 25, 25))
 
             # basically multiplies the index by 25 to draw a 25 by 25 square at the appropriate place
             # relative to the grid. i found enumerate on google to have access to both the indices and values
