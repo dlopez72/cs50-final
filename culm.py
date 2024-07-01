@@ -18,7 +18,7 @@ tetrominoes = {
 
 # set up pygame stuff
 pygame.init()
-screen = pygame.display.set_mode((500, 600))
+screen = pygame.display.set_mode((550, 600))
 pygame.display.set_caption("ICS3U1 Tetris")
 state = "title"
 
@@ -128,7 +128,7 @@ class Tetromino:
         for row_index, row in enumerate(self.shape):
             for col_index, value in enumerate(row):
                 if value != 0:
-                    pygame.draw.rect(screen, self.color, ((self.position[1] + col_index) * 25, (self.position[0] + row_index) * 25, 25, 25))
+                    pygame.draw.rect(screen, self.color, (((self.position[1] + col_index) * 25) + self.player.offset, (self.position[0] + row_index) * 25, 25, 25))
 
     # this function is mixed code from draw() and slam() to draw a ghost of where you will hard drop
     def draw_ghost(self):
@@ -141,7 +141,7 @@ class Tetromino:
         for row_index, row in enumerate(self.shape):
             for col_index, value in enumerate(row):
                 if value != 0:
-                    pygame.draw.rect(screen, "gray", ((self.position[1] + col_index) * 25, (ghost_y + row_index) * 25, 25, 25))
+                    pygame.draw.rect(screen, "gray", (((self.position[1] + col_index) * 25) + self.player.offset, (ghost_y + row_index) * 25, 25, 25))
 
     # resets every variable used for game
     def reset_game(self):
@@ -217,7 +217,7 @@ interval = 30
 
 # player class includes tetronimo object and stats for your own game.
 class Player:
-    def __init__(self, tetromino_order, tetrorder_index, grid):
+    def __init__(self, tetromino_order, tetrorder_index, grid, offset):
         self.tetro =  Tetromino(self, tetromino_order[tetrorder_index])
         self.score = 0
         self.held = None
@@ -225,9 +225,10 @@ class Player:
         self.lines_cleared = 0
         self.level = 1
         self.grid = grid
+        self.offset = offset
 
-p1 = Player(tetromino_order, tetrorder_index, game_grid)
-p2 = Player(tetromino_order, tetrorder_index, game_grid)
+p1 = Player(tetromino_order, tetrorder_index, game_grid, 0)
+p2 = Player(tetromino_order, tetrorder_index, game_grid, 300)
 players = [p1, p2]
 
 # set up text
@@ -255,34 +256,35 @@ while running:
         # some inputs r done here instead of with the "keys" variable i use later bc
         # these are for ones that aren't held down, just the inital press.
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LSHIFT and state == "playing":
-                # the purpose of justHeld is to prevent hold spamming. it gets set to False in Tetronimo.lockin()
-                if not p1.justHeld:
-                    if p1.held:
-                        temp = p1.tetro.shapecolor
-                        p1.tetro.__init__(p1, p1.held)
-                        p1.held = temp
-                    else:
-                        p1.held = p1.tetro.shapecolor
-                        tetrorder_index = bag_increment(tetrorder_index)
-                        p1.tetro.__init__(p1, tetromino_order[tetrorder_index])
-                    p1.justHeld = True
             if event.key == pygame.K_RETURN and (state == "title" or state == "loss"):
                 p1.tetro.reset_game()
                 state = "playing"
-            if event.key == pygame.K_q and state == "playing":
-                p1.tetro.rotate("left")
-            elif event.key == pygame.K_e and state == "playing":
-                p1.tetro.rotate("right")
-            if event.key == pygame.K_SPACE and state == "playing":
-                p1.tetro.slam()
-            if event.key == pygame.K_a and state == "playing":
-                p1.tetro.movement("left")
-                # this is neccessary to make movement not so finicky and sensitive
-                movement_timer = 0
-            elif event.key == pygame.K_d and state == "playing":
-                p1.tetro.movement("right")
-                movement_timer = 0
+            if state == "playing":
+                if event.key == pygame.K_LSHIFT:
+                # the purpose of justHeld is to prevent hold spamming. it gets set to False in Tetronimo.lockin()
+                    if not p1.justHeld:
+                        if p1.held:
+                            temp = p1.tetro.shapecolor
+                            p1.tetro.__init__(p1, p1.held)
+                            p1.held = temp
+                        else:
+                            p1.held = p1.tetro.shapecolor
+                            tetrorder_index = bag_increment(tetrorder_index)
+                            p1.tetro.__init__(p1, tetromino_order[tetrorder_index])
+                        p1.justHeld = True
+                if event.key == pygame.K_q:
+                    p1.tetro.rotate("left")
+                elif event.key == pygame.K_e:
+                    p1.tetro.rotate("right")
+                if event.key == pygame.K_SPACE:
+                    p1.tetro.slam()
+                if event.key == pygame.K_a:
+                    p1.tetro.movement("left")
+                    # this is neccessary to make movement not so finicky and sensitive
+                    movement_timer = 0
+                elif event.key == pygame.K_d:
+                    p1.tetro.movement("right")
+                    movement_timer = 0
 
     time += 1
     movement_timer += 1
@@ -294,87 +296,110 @@ while running:
     if state == "playing":
         # play music
         pygame.mixer.music.unpause()
-
-        # updates and draws text
-        scoretext = font.render(f"Score: {p1.score}", True, "white")
-        heldtext = font.render(f"Held:", True, "white")
-        screen.blit(scoretext, (15, 540))
-        screen.blit(heldtext, (160, 520))
-        held_render_pos = [160, 540]
         
-        # slightly tweaked code from Tetronimo.draw() to render the block you're holding
-        if p1.held:
-            for row_index, row in enumerate(tetrominoes[p1.held]['shape']):
-                    for col_index, value in enumerate(row):
-                        if value != 0:
-                            pygame.draw.rect(screen, tetrominoes[p1.held]['color'], (held_render_pos[0] + (col_index * 25), held_render_pos[1] + (row_index * 25), 25, 25))
-
-        # basically multiplies the index by 25 to draw a 25 by 25 square at the appropriate place
-        # relative to the grid. i found enumerate on google to have access to both the indices and values
-        for row_index, row in enumerate(p1.grid):
-            for col_index, value in enumerate(row):
-                pygame.draw.rect(screen, value, (col_index * 25, row_index * 25, 25, 25))
-
-        # checks every line and clears if full
-        for row_index, row in enumerate(p1.grid):
-            full_count = 0
-            for value in row:
-                if value != 0:
-                    full_count += 1
-            if full_count == 10:
-                for i in range(10):
-                    p1.grid[row_index][i] = 0
-                # level is dictated by how many lines you've cleared which increases score and makes the game go faster
-                p1.score += 100 * p1.level
-                p1.lines_cleared += 1
-
-                # brings everything down 1 tile after clearing row
-                for i in range(row_index, 0, -1):
-                    p1.grid[i] = p1.grid[i-1]
-                p1.grid[0] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-
         keys = pygame.key.get_pressed()
 
-        # gravity falls faster based on level, caps at level 10
-        if p1.level <= 10:
-            base_gravity = 35 - (3*p1.level)
-        else:
-            base_gravity = 5
+        # this code is executed individually for each player
+        for player_num, player in enumerate(players):
+            # updates and draws text
+            scoretext = font.render(f"Score: {player.score}", True, "white")
+            heldtext = font.render(f"Held:", True, "white")
+            screen.blit(scoretext, (15 + player.offset, 540))
+            screen.blit(heldtext, (160 + player.offset, 520))
+            held_render_pos = [160 + player.offset, 540]
 
-        # makes the block fall faster if s is held
-        if keys[pygame.K_s]:
-            gravity_interval = 5
-        # mega slow down for debugging
-        elif keys[pygame.K_p]:
-            gravity_interval = 120
-        else:
-            gravity_interval = base_gravity
+            # slightly tweaked code from Tetronimo.draw() to render the block you're holding
+            if player.held:
+                for row_index, row in enumerate(tetrominoes[player.held]['shape']):
+                        for col_index, value in enumerate(row):
+                            if value != 0:
+                                pygame.draw.rect(screen, tetrominoes[player.held]['color'], ((held_render_pos[0] + (col_index * 25)) + player.offset, held_render_pos[1] + (row_index * 25), 25, 25))
 
-        movement_interval = 7
+            # basically multiplies the index by 25 to draw a 25 by 25 square at the appropriate place
+            # relative to the grid. i found enumerate on google to have access to both the indices and values
+            for row_index, row in enumerate(player.grid):
+                for col_index, value in enumerate(row):
+                    pygame.draw.rect(screen, value, ((col_index * 25) + player.offset, row_index * 25, 25, 25))
 
-        p1.tetro.draw_ghost()
-        p1.tetro.draw()
+            # checks every line and clears if full
+            for row_index, row in enumerate(player.grid):
+                full_count = 0
+                for value in row:
+                    if value != 0:
+                        full_count += 1
+                if full_count == 10:
+                    for i in range(10):
+                        player.grid[row_index][i] = 0
+                    # level is dictated by how many lines you've cleared which increases score and makes the game go faster
+                    player.score += 100 * player.level
+                    player.lines_cleared += 1
 
-        if keys[pygame.K_a]:
-            if movement_timer % movement_interval == 0:
-                p1.tetro.movement("left")
-        elif keys[pygame.K_d]:
-            if movement_timer % movement_interval == 0:
-                p1.tetro.movement("right")
+                    # brings everything down 1 tile after clearing row
+                    for i in range(row_index, 0, -1):
+                        player.grid[i] = player.grid[i-1]
+                    player.grid[0] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-        # the interval dictactes how often the blocks move down a tile or are allowed to move
-        if time % gravity_interval == 0:
-            p1.tetro.gravity()
+            # gravity falls faster based on level, caps at level 10
+            if player.level <= 10:
+                base_gravity = 35 - (3*player.level)
+            else:
+                base_gravity = 5
 
-        # generates grid lines for visibility
-        for row_index, row in enumerate(p1.grid):
-            for col_index, value in enumerate(row):
-                pygame.draw.line(screen, "gray", [col_index * 25, 0], [col_index * 25, 500])
-                pygame.draw.line(screen, "gray", [0, row_index * 25], [250, row_index * 25])
+            # makes the block fall faster if s is held
+            if player_num == 0:
+                if keys[pygame.K_s]:
+                    gravity_interval = 5
+                # mega slow down for debugging
+                elif keys[pygame.K_p]:
+                    gravity_interval = 120
+                else:
+                    gravity_interval = base_gravity
+            else:
+                if keys[pygame.K_DOWN]:
+                    gravity_interval = 5
+                # mega slow down for debugging
+                elif keys[pygame.K_p]:
+                    gravity_interval = 120
+                else:
+                    gravity_interval = base_gravity
 
-        # two extra lines that dont get drawn in the for loop
+            movement_interval = 7
+
+            player.tetro.draw_ghost()
+            player.tetro.draw()
+
+            if player_num == 0:
+                if keys[pygame.K_a]:
+                    if movement_timer % movement_interval == 0:
+                        player.tetro.movement("left")
+                elif keys[pygame.K_d]:
+                    if movement_timer % movement_interval == 0:
+                        player.tetro.movement("right")
+            else:
+                if keys[pygame.K_LEFT]:
+                    if movement_timer % movement_interval == 0:
+                        player.tetro.movement("left")
+                elif keys[pygame.K_RIGHT]:
+                    if movement_timer % movement_interval == 0:
+                        player.tetro.movement("right")
+
+            # the interval dictactes how often the blocks move down a tile or are allowed to move
+            if time % gravity_interval == 0:
+                player.tetro.gravity()
+
+            # generates grid lines for visibility
+            for row_index, row in enumerate(player.grid):
+                for col_index, value in enumerate(row):
+                    pygame.draw.line(screen, "gray", [(col_index * 25) + player.offset, 0], [(col_index * 25) + player.offset, 500])
+                    pygame.draw.line(screen, "gray", [player.offset, row_index * 25], [250 + player.offset, row_index * 25])
+
+        # four extra lines that dont get drawn in the for loop
         pygame.draw.line(screen, "gray", [0, 499], [250, 499])
         pygame.draw.line(screen, "gray", [249, 0], [249, 500])
+        pygame.draw.line(screen, "gray", [300, 499], [550, 499])
+        pygame.draw.line(screen, "gray", [549, 0], [549, 500])
+
+
     elif state == "title":
         pygame.mixer.music.pause()
         screen.blit(title_text, (15, 200))
