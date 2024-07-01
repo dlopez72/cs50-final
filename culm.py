@@ -250,6 +250,7 @@ explain_text8 = font.render("RSHIFT to hold", True, "white")
 explain_text9 = font.render("RCTRL to drop", True, "white")
 gameover_text1 = title_font.render("Winner: ", True, "white")
 heldtext = font.render(f"Held:", True, "white")
+nexttext = font.render(f"Next:", True, "white")
 
 # set up music
 pygame.mixer.music.load('main_theme.mp3')
@@ -324,8 +325,18 @@ while running:
     if state == "playing":
         # play music
         pygame.mixer.music.unpause()
-        
         keys = pygame.key.get_pressed()
+
+        screen.blit(nexttext, (260, 15))
+        next_render_index = 0
+        next_render_pos = [285, 40]
+        for shape in tetromino_order[tetrorder_index + 1:]:
+            # slightly tweaked code from Tetronimo.draw() to render the upcoming blocks left you're holding
+            for row_index, row in enumerate(tetrominoes[shape]['shape']):
+                for col_index, value in enumerate(row):
+                    if value != 0:
+                        pygame.draw.rect(screen, tetrominoes[shape]['color'], (next_render_pos[0] + (col_index * 25), (next_render_pos[1] + (70 * next_render_index)) + (row_index * 25), 25, 25))
+            next_render_index += 1
 
         # this code is executed individually for each player
         for player_num, player in enumerate(players):
