@@ -211,7 +211,7 @@ def bag_increment(tetrorder_index):
     else:
         shuffle(tetromino_order)
         return 0
-
+    
 clock = pygame.time.Clock()
 time = 0
 movement_timer = 0
@@ -327,11 +327,11 @@ while running:
         pygame.mixer.music.unpause()
         keys = pygame.key.get_pressed()
 
+        # slightly tweaked code from Tetronimo.draw() to render the upcoming blocks
         screen.blit(nexttext, (260, 15))
         next_render_index = 0
         next_render_pos = [285, 40]
         for shape in tetromino_order[tetrorder_index + 1:]:
-            # slightly tweaked code from Tetronimo.draw() to render the upcoming blocks left you're holding
             for row_index, row in enumerate(tetrominoes[shape]['shape']):
                 for col_index, value in enumerate(row):
                     if value != 0:
