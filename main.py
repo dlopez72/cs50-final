@@ -19,7 +19,7 @@ tetrominoes = {
 # set up pygame stuff
 pygame.init()
 screen = pygame.display.set_mode((650, 600))
-pygame.display.set_caption("ICS3U1 Tetris")
+pygame.display.set_caption("CS50 Tetris")
 state = "title"
 
 # run until user asks to quit
