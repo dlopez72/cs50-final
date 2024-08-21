@@ -1,5 +1,5 @@
 # Tetris for Two
-#### Video Demo:  <URL HERE>
+#### Video Demo:  <https://www.youtube.com/watch?v=76NqmysWPH4>
 #### Description:
 Tetris for a Two is a multiplayer pygame recreation of the game "Tetris," originally created by Alexey Pajitnov. This recreation is designed for two local players, where both share the oncoming pieces. The game features a “bag shuffle,” where instead of the next Tetromino being selected randomly, a bag of each different Tetromino is shuffled and then picked from. This method, commonly used in official Tetris games, prevents the player from receiving the same Tetromino more than twice in a row. The choice was also made to have both players share the oncoming Tetrominoes, adding an interesting dynamic of trying to “steal” a useful piece before the other player can get to it.
 
